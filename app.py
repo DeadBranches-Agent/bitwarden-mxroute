@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from coolname import generate_slug
 
 load_dotenv()
 
@@ -48,7 +49,7 @@ def add(destination, subpath):
     domain = data.get("domain")
     endpoint, headers = build_request(domain)
 
-    alias = "teste2"
+    alias = generate_slug(3)
 
     body = {
         "alias": alias,
@@ -62,13 +63,6 @@ def add(destination, subpath):
         return {"data": {"email": f"{alias}@{domain}"}}
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/test", methods=["GET"])
-def test():
-    destination = request.args.get("destination")
-
-    return destination
 
 
 if __name__ == "__main__":

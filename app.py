@@ -8,17 +8,17 @@ load_dotenv()
 
 app = Flask(__name__)
 
-SERVER = os.getenv("MXROUTE_SERVER")
-USERNAME = os.getenv("MXROUTE_USERNAME")
-API_KEY = os.getenv("MXROUTE_API_KEY")
+MXROUTE_SERVER = os.getenv("MXROUTE_SERVER")
+MXROUTE_USERNAME = os.getenv("MXROUTE_USERNAME")
+MXROUTE_API_KEY = os.getenv("MXROUTE_API_KEY")
 
 
 def build_request(domain):
     mxroute_endpoint = f"https://api.mxroute.com/domains/{domain}/forwarders"
     mxroute_headers = {
-        "X-Server": SERVER,
-        "X-Username": USERNAME,
-        "X-API-Key": API_KEY,
+        "X-Server": MXROUTE_SERVER,
+        "X-Username": MXROUTE_USERNAME,
+        "X-API-Key": MXROUTE_API_KEY,
         "Content-Type": "application/json",
     }
 
@@ -65,7 +65,3 @@ def get(domain):
         return jsonify(data["data"]), response.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
-
-
-if __name__ == "__main__":
-    app.run()

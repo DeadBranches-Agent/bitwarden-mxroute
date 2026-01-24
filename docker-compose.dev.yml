@@ -1,7 +1,9 @@
 services:
   mxroute-bitwarden:
     container_name: mxroute-bitwarden
-    image: ghcr.io/bfpimentel/mxroute-bitwarden:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
       - "6123:6123"
-    env_file: .env.dev
+    env_file: .env.example

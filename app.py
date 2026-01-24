@@ -30,19 +30,6 @@ def status():
     return "Bitwarden Mxroute plugin is running."
 
 
-@app.route("/list/<domain>", methods=["GET"])
-def get(domain):
-    endpoint, headers = build_request(domain)
-
-    try:
-        response = requests.get(endpoint, headers=headers)
-        response.raise_for_status()
-
-        return jsonify(response.json()), response.status_code
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/add/<destination>/<path:subpath>", methods=["POST"])
 def add(destination, subpath):
     data = request.get_json()
@@ -61,6 +48,21 @@ def add(destination, subpath):
         response.raise_for_status()
 
         return {"data": {"email": f"{alias}@{domain}"}}
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/list/<domain>", methods=["GET"])
+def get(domain):
+    endpoint, headers = build_request(domain)
+
+    try:
+        response = requests.get(endpoint, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+
+        return jsonify(data["data"]), response.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
 

@@ -43,10 +43,13 @@ This should be used only locally. There's no authentication built-in and exposin
   flask --app app.py --debug run
   ```
 5. Configure Bitwarden's "Generator" Tab
-  - Type: Forwarded email alias
-  - Service: Addy.io
-  - API Key: Anything - ignored
-  - Self-host server URL: `http://127.0.0.1:5000/add/<alias_destination_email>` (if host or port is kept at the defaults).
+    1. Type: Forwarded email alias
+    2. Service: Addy.io
+    3. Email domain: The domain aliases will be created with. It doesn't need to be the same as the `<alias_destination_email>` found in step 5.5.
+    4. API Key: Anything - ignored
+    5. Self-host server URL: 
+        1. e.g. `http://127.0.0.1:5000/add/<alias_destination_email>` (if host or port is kept at the defaults).
+        2. Replace `<alias_destination_email>` with the email you want to redirect your alias **to**.
 6. Click the "Generate email" icon.
 
 Note: Sometimes cache can be an issue with extensions or the server. Remember to clean them if something goes wrong.

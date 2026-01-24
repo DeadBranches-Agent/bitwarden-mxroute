@@ -17,7 +17,7 @@ This could be adapted to pretty much any email server that has an API. It might 
 
 This should be used only locally. There's no authentication built-in and exposing it will result on exposing the MXRoute API indirectly.
 
-## How to use
+## Installation
 
 ### Docker (recommended)
 
@@ -36,7 +36,7 @@ An example for a `docker-compose.yml` file can be found [here](./docker-compose.
 
 The application will be running on `http://127.0.0.1:5000`.
 
-### Manual Install
+### Manual
 1. Clone the repo
 2. Install python dependencies, e.g.:
     ```bash
@@ -60,14 +60,18 @@ The application will be running on `http://127.0.0.1:5000`.
     # Or, when debugging
     flask --app app.py --debug run
     ```
-5. Configure Bitwarden's "Generator" Tab
-    1. Type: Forwarded email alias
-    2. Service: Addy.io
-    3. Email domain: The domain aliases will be created with. It doesn't need to be the same as the `<alias_destination_email>` found in step 5.5.
-    4. API Key: Anything - ignored
-    5. Self-host server URL: 
-        1. e.g. `http://127.0.0.1:5000/add/<alias_destination_email>` (if host or port is kept at the defaults).
-        2. Replace `<alias_destination_email>` with the email you want to redirect your alias **to**.
+
+## How to use
+
+Configure Bitwarden's "Generator" Tab:
+
+1. Type: Forwarded email alias
+2. Service: Addy.io
+3. Email domain: The domain aliases will be created with. It doesn't need to be the same as the `<alias_destination_email>` found in step 5.5.
+4. API Key: Anything - ignored
+5. Self-host server URL: 
+    1. e.g. `http://127.0.0.1:5000/add/<alias_destination_email>` (if host or port is kept at the defaults).
+    2. Replace `<alias_destination_email>` with the email you want to redirect your alias **to**.
 6. Click the "Generate email" icon.
 
 Note: Sometimes cache can be an issue with extensions or the server. Remember to clean them if something goes wrong.

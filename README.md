@@ -19,29 +19,47 @@ This should be used only locally. There's no authentication built-in and exposin
 
 ## How to use
 
+### Docker (recommended)
+
+An example for a `docker-compose.yml` file can be found [here](./docker-compose.yml).
+
+1. Configure the environment variables in `docker-compose.yml` or create a `.env` file:
+   ```bash
+   MXROUTE_SERVER=<your_server>.mxrouting.net
+   MXROUTE_USERNAME=<control_pane_username>
+   MXROUTE_API_KEY=<control_pane_api_key>
+   ```
+2. Start the service:
+   ```bash
+   docker-compose up -d
+   ```
+
+The application will be running on `http://127.0.0.1:5000`.
+
+### Manual Install
 1. Clone the repo
 2. Install python dependencies, e.g.:
-  ```bash
-  $ uv venv
-  $ uv pip install -r requirements.txt
-  $ source .venv/bin/activate
-  ```
+    ```bash
+    $ uv venv
+    $ uv pip install -r requirements.txt
+    $ source .venv/bin/activate
+    ```
 3. Create a .env file with the following variables:
-  ```bash
-  # Your email server, e.g. pixel.mxrouting.net
-  MXROUTE_SERVER=<your_server>.mxrouting.net
-  # Your control pane username
-  MXROUTE_USERNAME=<control_pane_username>
-  # Panel API key, can be found in https://panel.mxroute.com/api-keys.php
-  MXROUTE_API_KEY=<control_pane_api_key>
-  ```
+    ```bash
+    # Your email server, e.g. pixel.mxrouting.net
+    MXROUTE_SERVER=<your_server>.mxrouting.net
+    # Your control pane username
+    MXROUTE_USERNAME=<control_pane_username>
+    # Panel API key, can be found in https://panel.mxroute.com/api-keys.php
+    MXROUTE_API_KEY=<control_pane_api_key>
+    ```
 4. Run the server
-  ```bash
-  flask run
+    ```bash
+    flask run
 
-  # Or, when debugging
-  flask --app app.py --debug run
-  ```
+    # Or, when debugging
+    flask --app app.py --debug run
+    ```
 5. Configure Bitwarden's "Generator" Tab
     1. Type: Forwarded email alias
     2. Service: Addy.io
@@ -57,6 +75,6 @@ Note: Sometimes cache can be an issue with extensions or the server. Remember to
 ## Utilities
 
 1. Status check
-  `https://127.0.0.1:5000`
+    - `https://127.0.0.1:5000`
 2. List aliases for given domain
-  `https://127.0.0.1:5000/list/<alias_destination_email>`
+    - `https://127.0.0.1:5000/list/<alias_destination_email>`

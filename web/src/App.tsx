@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ForwarderItem } from "./components/ForwarderItem";
+import { Settings } from "lucide-react";
 
 interface Forwarder {
   alias: string;
@@ -14,6 +15,33 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Token state
+  const [storedToken, setStoredToken] = useState<string>("");
+  const [showTokenInput, setShowTokenInput] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("mxroute_api_token");
+    if (token) {
+      setStoredToken(token);
+    } else {
+      setShowTokenInput(true);
+    }
+  }, []);
+
+  const handleSaveToken = (token: string) => {
+    setStoredToken(token);
+    localStorage.setItem("mxroute_api_token", token);
+    setShowTokenInput(false);
+  };
+
+  const getHeaders = () => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (storedToken) headers["Authorization"] = `Bearer ${storedToken}`;
+    return headers;
+  };
+
   const fetchList = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!domain) return;
@@ -21,8 +49,12 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/list/${domain}`);
+      const res = await fetch(`/api/list/${domain}`, {
+        headers: getHeaders(),
+      });
       if (!res.ok) {
+        if (res.status === 401)
+          throw new Error("Unauthorized: Invalid API Token");
         throw new Error(`Error: ${res.statusText}`);
       }
       const data = await res.json();
@@ -50,6 +82,7 @@ function App() {
     try {
       const res = await fetch(`/api/delete/${encodeURIComponent(email)}`, {
         method: "DELETE",
+        headers: getHeaders(),
       });
 
       if (!res.ok) {
@@ -70,9 +103,44 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
-          MXRoute Bitwarden Plugin
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">
+            MXRoute Bitwarden Plugin
+          </h1>
+          <button
+            onClick={() => setShowTokenInput(!showTokenInput)}
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors"
+            title="API Settings"
+          >
+            <Settings className="w-6 h-6" />
+          </button>
+        </div>
+
+        {showTokenInput && (
+          <div className="bg-white p-6 rounded-lg shadow-md mb-8 border-l-4 border-blue-500">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              API Configuration
+            </h2>
+            <div className="flex gap-4">
+              <input
+                type="password"
+                placeholder="Enter Server API Token"
+                value={storedToken}
+                onChange={(e) => setStoredToken(e.target.value)}
+                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => handleSaveToken(storedToken)}
+                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-medium"
+              >
+                Save
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              This token is saved in your browser's local storage.
+            </p>
+          </div>
+        )}
 
         <form
           onSubmit={fetchList}

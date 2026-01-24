@@ -6,21 +6,19 @@ It works by creating a "fake" Addy.io server and route the calls to MXRoute.
 
 Under the hood, it uses `coolname` to create the aliases.
 
-While it's working as intended, consider it as a preview, since API Key authentication is on works.
-
-This could be adapted to pretty much any email server that has an API. It might be configurable in the future, but it's not planned.
-
 ## ⚠️ Disclaimer
 
-This should be used only locally. There's no authentication built-in and exposing it will result on exposing the MXRoute API indirectly.
+Although there's authentication to the app, diligence is needed when exposing this utility to the public.
+
+I'm not responsible for any compromised data.
 
 ## Installation
 
-### Docker (recommended)
-
-1. Grab the example docker-compose file from [here](./docker-compose.yml).
-2. Configure the environment variables in `docker-compose.yml` or create a `.env` file:
+### Environment Variables
+1. Configure the environment variables in a `.env` file or use them directly inside your `docker-compose.yml`:
    ```bash
+   SERVER_API_TOKEN=your_secure_token_here
+
    MXROUTE_SERVER=<your_server>.mxrouting.net
    MXROUTE_USERNAME=<control_pane_username>
    MXROUTE_API_KEY=<control_pane_api_key>
@@ -29,11 +27,16 @@ This should be used only locally. There's no authentication built-in and exposin
 
    SERVER_ADDRESS=http://bitwarden-mxroute-server:6123 # Optional for web app
    ```
-3. Start the service:
+
+### Docker (recommended)
+
+1. Grab the example docker-compose file from [here](./docker-compose.yml).
+2. Start the service:
    ```bash
    docker-compose up -d
    ```
-   The application will be running on `http://localhost:6123` by default.
+
+The application will be running on `http://localhost:6123` by default.
 
 ### Manual
 
@@ -48,16 +51,7 @@ This should be used only locally. There's no authentication built-in and exposin
    uv pip install -r requirements.txt
    source .venv/bin/activate
    ```
-4. Create a .env file with the following variables:
-   ```bash
-   # Your email server, e.g. pixel.mxrouting.net
-   MXROUTE_SERVER=<your_server>.mxrouting.net
-   # Your control pane username
-   MXROUTE_USERNAME=<control_pane_username>
-   # Panel API key, can be found in https://panel.mxroute.com/api-keys.php
-   MXROUTE_API_KEY=<control_pane_api_key>
-   ```
-5. Run the server
+4. Run the server
    ```bash
    flask run --app app.py --host=0.0.0.0 --port=6123
 
@@ -72,7 +66,7 @@ Configure Bitwarden's "Generator" Tab:
 1. Type: Forwarded email alias
 2. Service: Addy.io
 3. Email domain: The domain aliases will be created with. It doesn't need to be the same as the domain from `<alias_destination_email>` found in step 5.
-4. API Key: Anything - ignored for now.
+4. API Key: The same that has been configured in the `SERVER_API_TOKEN` environment variable.
 5. Self-host server URL: 
     1. `http://<server_address>/add/<alias_destination_email>`, e.g. `http://localhost:6123/add/custom@domain.com` (if host or port is kept at the defaults).
     2. Replace `<alias_destination_email>` with the email you want to redirect your alias **to**.

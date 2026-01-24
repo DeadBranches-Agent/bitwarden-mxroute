@@ -8,6 +8,8 @@ load_dotenv()
 
 app = Flask(__name__)
 
+SERVER_API_TOKEN = os.getenv("SERVER_API_TOKEN")
+
 MXROUTE_SERVER = os.getenv("MXROUTE_SERVER")
 MXROUTE_USERNAME = os.getenv("MXROUTE_USERNAME")
 MXROUTE_API_KEY = os.getenv("MXROUTE_API_KEY")
@@ -25,9 +27,29 @@ def build_request(domain):
     return mxroute_endpoint, mxroute_headers
 
 
+@app.before_request
+def check_auth():
+    if request.endpoint == "status":
+        return
+
+    auth_header = request.headers.get("Authorization")
+    if not SERVER_API_TOKEN:
+        return jsonify({"error": "SERVER_API_TOKEN not configured"}), 500
+
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Missing or invalid Authorization header"}), 401
+
+    token = auth_header.split(" ")[1]
+    if token != SERVER_API_TOKEN:
+        return jsonify({"error": "Invalid token"}), 401
+
+
 @app.route("/")
 def status():
-    return "Bitwarden Mxroute plugin is running."
+    if not SERVER_API_TOKEN:
+        return "Bitwarden Mxroute plugin is running, but SERVER_API_TOKEN is not configured."
+
+    return "Bitwarden Mxroute plugin is running healthy."
 
 
 @app.route("/add/<destination>/<path:subpath>", methods=["POST"])
@@ -36,7 +58,7 @@ def add(destination, subpath):
     domain = data.get("domain")
     endpoint, headers = build_request(domain)
 
-    alias = generate_slug(3)
+    alias = generate_slug(2)
 
     body = {
         "alias": alias,

@@ -27,7 +27,7 @@ This should be used only locally. There's no authentication built-in and exposin
 
    DEBUG=false # Optional for debugging the server
 
-   SERVER_ADDRESS=http://mxroute-bitwarden-server:6123 # Optional for web app
+   SERVER_ADDRESS=http://bitwarden-mxroute-server:6123 # Optional for web app
    ```
 3. Start the service:
    ```bash

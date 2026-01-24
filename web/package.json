@@ -1,5 +1,5 @@
 {
-  "name": "mxroute-bitwarden-web",
+  "name": "bitwarden-mxroute-web",
   "private": true,
   "version": "0.0.0",
   "type": "module",

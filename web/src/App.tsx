@@ -182,6 +182,7 @@ function App() {
                 <ForwarderItem
                   key={item.email || idx}
                   email={item.email}
+                  destinations={item.destinations}
                   onDelete={handleDelete}
                 />
               ))}

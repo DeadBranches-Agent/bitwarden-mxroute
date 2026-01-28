@@ -1,4 +1,3 @@
-from typing import Dict
 import secrets
 import os
 import re
@@ -6,10 +5,13 @@ import requests
 import coolname
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+from typing import Dict
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 SERVER_API_TOKEN = os.getenv("SERVER_API_TOKEN")
 
@@ -83,7 +85,7 @@ def get_options(request_options) -> tuple[str, str, str]:
 
 @app.before_request
 def check_auth():
-    if request.endpoint == "status":
+    if request.method == "OPTIONS":
         return
 
     auth_header = request.headers.get("Authorization")
@@ -100,9 +102,6 @@ def check_auth():
 
 @app.route("/")
 def status():
-    if not SERVER_API_TOKEN:
-        return "Bitwarden Mxroute plugin is running, but SERVER_API_TOKEN is not configured."
-
     return "Bitwarden Mxroute plugin is running healthy."
 
 
@@ -124,10 +123,10 @@ def add(subpath):
         response.raise_for_status()
 
         return {"data": {"email": f"{alias}@{domain}"}}
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
     except requests.exceptions.InvalidJSONError as e:
         return jsonify({"error": str(e)}), 412
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/list/<domain>", methods=["GET"])

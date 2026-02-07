@@ -7,7 +7,7 @@ A Bitwarden plugin (via "Addy.io" integration) for MXRoute.
 
 This repository is a personal fork of the upstream project and focuses on Docker images for `linux/arm64/v8` (arch64/v8).
 
-This service mimics the Addy.io API to allow Bitwarden to generate email aliases directly on your MXRoute domains. It uses `coolname` for human-readable aliases.
+This service mimics the Addy.io API to allow Bitwarden to generate email aliases directly on your MXRoute domains. By default it builds aliases from a target website domain, and still supports template-based aliases with `coolname`.
 
 ## ⚠️ Disclaimer
 
@@ -83,7 +83,8 @@ Configure these in the "Email domain" field using `key=value` format, separated 
 |--------|------|----------|---------|-------------|
 | `domain` | String | yes | None | The domain to create the alias on. |
 | `destination` | String | yes | None | The destination email address. |
-| `template` | String | no | `<slug>` | Format template. Allowed: `<slug>`, `<hex>`. |
+| `target` | String | yes | None | Website domain used for default alias generation (for example, `example.com`). |
+| `template` | String | no | None | Optional template override. Allowed: `<slug>`, `<hex>`. |
 | `prefix` | String | no | None | Prefix added to the alias. |
 | `suffix` | String | no | None | Suffix added to the alias. |
 | `hex_length` | Number | no | 6 | Length of the random hex string. |
@@ -91,10 +92,19 @@ Configure these in the "Email domain" field using `key=value` format, separated 
 | `slug_separator` | String | no | _ | Separator between slug words. |
 | `alias_separator` | String | no | _ | Separator between alias components. |
 
-**Example Input:**
-`domain=test.com,destination=hello@test.com,prefix=foo,template=<slug><hex>,alias_separator=-`
+**Default Alias Format (when `template` is not provided):**
+`{tld}-{host}-{MMYw}`
 
-**Result:** `foo-good_morning-8ed379@test.com`
+- `tld`: Last label of the target domain suffix.
+- `host`: Registrable host label, truncated to 8 characters.
+- `MM`: Zero-padded month.
+- `Y`: Last digit of year.
+- `w`: Week in month using day buckets (`1..5`).
+
+**Example Input:**
+`domain=test.com,destination=hello@test.com,target=example.com`
+
+**Result:** `com-example-0261@test.com` (example for February 2026, week 1)
 
 > **Note:** If you encounter issues, try clearing the extension cache.
 

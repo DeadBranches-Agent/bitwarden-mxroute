@@ -3,3 +3,4 @@ python-dotenv
 requests
 coolname
 flask-cors
+tldextract

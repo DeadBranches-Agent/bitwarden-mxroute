@@ -5,6 +5,8 @@
 
 A Bitwarden plugin (via "Addy.io" integration) for MXRoute.
 
+This repository is a personal fork of the upstream project and focuses on Docker images for `linux/arm64/v8` (arch64/v8).
+
 This service mimics the Addy.io API to allow Bitwarden to generate email aliases directly on your MXRoute domains. It uses `coolname` for human-readable aliases.
 
 ## ⚠️ Disclaimer

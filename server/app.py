@@ -1,12 +1,15 @@
-import secrets
 import os
 import re
-import requests
+import secrets
+from datetime import datetime
+from typing import Dict
+
 import coolname
+import requests
+import tldextract
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from typing import Dict
 
 load_dotenv()
 
@@ -20,6 +23,8 @@ MXROUTE_USERNAME = os.getenv("MXROUTE_USERNAME")
 MXROUTE_API_KEY = os.getenv("MXROUTE_API_KEY")
 
 ALLOWED_TEMPLATE_PARTS = ["slug", "hex"]
+DOMAIN_ERROR_MESSAGE = "The 'target' option must be a valid domain (e.g. example.com)."
+TLD_EXTRACTOR = tldextract.TLDExtract(suffix_list_urls=())
 
 
 def build_request(domain):
@@ -34,34 +39,49 @@ def build_request(domain):
     return mxroute_endpoint, mxroute_headers
 
 
-def get_options(request_options) -> tuple[str, str, str]:
-    options: Dict[str, str] = {}
-    for option in request_options:
-        if "=" in option:
-            key, value = option.split("=", 1)
-            options[key] = value
+def get_current_datetime() -> datetime:
+    return datetime.now()
 
-    domain = options.get("domain")
-    destination = options.get("destination")
-    if not domain or not destination:
-        raise ValueError(
-            "The 'domain' and 'destination' options are required to be configured."
-        )
 
-    template = options.get("template", "<slug>")
-    prefix = options.get("prefix", "")
-    suffix = options.get("suffix", "")
-    alias_separator = options.get("alias_separator", "_")
-    slug_separator = options.get("slug_separator", "_")
-    slug_length = int(options.get("slug_length", "2"))
-    hex_length = int(options.get("hex_length", "6"))
+def build_domain_alias(target: str) -> str:
+    normalized_target = target.strip().lower()
+    extracted = TLD_EXTRACTOR(normalized_target)
 
+    host = extracted.domain
+    suffix = extracted.suffix
+    if not host or not suffix:
+        raise ValueError(DOMAIN_ERROR_MESSAGE)
+
+    tld = suffix.split(".")[-1]
+    host = host[:8]
+
+    if (
+        not re.fullmatch(r"[a-z0-9-]+", host)
+        or not re.fullmatch(r"[a-z0-9-]+", tld)
+    ):
+        raise ValueError(DOMAIN_ERROR_MESSAGE)
+
+    now = get_current_datetime()
+    month = f"{now.month:02d}"
+    year_last_digit = str(now.year % 10)
+    week_in_month = ((now.day - 1) // 7) + 1
+
+    return f"{tld}-{host}-{month}{year_last_digit}{week_in_month}"
+
+
+def build_template_alias(
+    template: str,
+    alias_separator: str,
+    slug_separator: str,
+    slug_length: int,
+    hex_length: int,
+) -> str:
     template_parts = []
     for match in re.findall(r"<(.*?)>", template):
         template_parts.append(match)
 
     alias_parts = []
-    for index, part in enumerate(template_parts):
+    for part in template_parts:
         if part not in ALLOWED_TEMPLATE_PARTS:
             raise ValueError(f"Template part '{part}' is not allowed.")
 
@@ -76,7 +96,42 @@ def get_options(request_options) -> tuple[str, str, str]:
             case "hex":
                 alias_parts.append(secrets.token_hex(hex_length)[:hex_length])
 
-    alias = alias_separator.join(alias_parts)
+    return alias_separator.join(alias_parts)
+
+
+def get_options(request_options) -> tuple[str, str, str]:
+    options: Dict[str, str] = {}
+    for option in request_options:
+        if "=" in option:
+            key, value = option.split("=", 1)
+            options[key] = value
+
+    domain = options.get("domain")
+    destination = options.get("destination")
+    target = options.get("target")
+    if not domain or not destination or not target:
+        raise ValueError(
+            "The 'domain', 'destination', and 'target' options are required to be configured."
+        )
+
+    template = options.get("template")
+    prefix = options.get("prefix", "")
+    suffix = options.get("suffix", "")
+    alias_separator = options.get("alias_separator", "_")
+
+    if template:
+        slug_separator = options.get("slug_separator", "_")
+        slug_length = int(options.get("slug_length", "2"))
+        hex_length = int(options.get("hex_length", "6"))
+        alias = build_template_alias(
+            template,
+            alias_separator,
+            slug_separator,
+            slug_length,
+            hex_length,
+        )
+    else:
+        alias = build_domain_alias(target)
 
     if prefix != "":
         alias = f"{prefix}{alias_separator}{alias}"

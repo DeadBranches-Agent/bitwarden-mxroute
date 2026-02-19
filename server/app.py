@@ -187,21 +187,6 @@ def add(subpath):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/list/<domain>", methods=["GET"])
-def get(domain):
-    endpoint, headers = build_request(domain)
-
-    try:
-        response = requests.get(endpoint, headers=headers)
-        response.raise_for_status()
-
-        data = response.json()
-
-        return jsonify(data["data"]), response.status_code
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/delete/<email>", methods=["DELETE"])
 def delete(email):
     try:

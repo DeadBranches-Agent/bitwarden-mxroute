@@ -12,4 +12,4 @@ COPY server .
 
 EXPOSE 6123
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:6123", "app:app"] 
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:6123", "app:app"] 

@@ -18,17 +18,14 @@ services:
     # tight once you add debugpy + reload overhead.
     mem_limit: "128m"
     memswap_limit: "160m"
-
     # Bind-mount source for hot reload.
     volumes:
-      - "/srv/bitwarden-mxroute/data:/app"
-
+      - "/opt/bitwarden-mxroute/build/server:/app"
     # Expose debugpy port for remote attach (VS Code, PyCharm).
     ports:
       - "5678:5678"
 
     environment:
-      FLASK_ENV: "development"
       FLASK_DEBUG: "1"
       # Set to "1" to start debugpy listener on boot.
       # Attach from your editor at <tailscale-ip>:5678.

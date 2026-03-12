@@ -1,6 +1,7 @@
 import pytest
 import sys
 import os
+from datetime import datetime
 from unittest.mock import patch
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -45,22 +46,24 @@ class TestApp:
         assert b"Bitwarden Mxroute plugin is running healthy" in res.data
 
     @patch("app.requests.post")
-    @patch("app.coolname.generate")
-    def test_add_success_default(self, mock_coolname, mock_post, client, headers):
-        mock_coolname.return_value = ["cool", "slug"]
+    @patch("app.get_current_datetime")
+    def test_add_success_default(self, mock_now, mock_post, client, headers):
+        mock_now.return_value = datetime(2026, 2, 8)
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {}
 
-        data = {"domain": "domain=example.com,destination=dest@example.com"}
+        data = {
+            "domain": "domain=example.com,destination=dest@example.com,target=example.com"
+        }
         res = client.post("/add/dummy", headers=headers, json=data)
 
         assert res.status_code == 200
-        assert res.json["data"]["email"] == "cool_slug@example.com"
+        assert res.json["data"]["email"] == "com-example-0262@example.com"
 
         mock_post.assert_called_once()
         args, kwargs = mock_post.call_args
         assert args[0] == "https://api.mxroute.com/domains/example.com/forwarders"
-        assert kwargs["json"]["alias"] == "cool_slug"
+        assert kwargs["json"]["alias"] == "com-example-0262"
         assert kwargs["json"]["destinations"] == ["dest@example.com"]
 
     @patch("app.requests.post")
@@ -74,7 +77,7 @@ class TestApp:
         mock_post.return_value.status_code = 200
 
         data = {
-            "domain": "domain=example.com,destination=dest@example.com,template=<slug>-<hex>,slug_length=1"
+            "domain": "domain=example.com,destination=dest@example.com,target=example.com,template=<slug>-<hex>,slug_length=1"
         }
         res = client.post("/add/dummy", headers=headers, json=data)
 
@@ -87,11 +90,72 @@ class TestApp:
         assert res.status_code == 412
         assert "options are required" in res.json["error"]
 
+    def test_add_missing_target(self, client, headers):
+        data = {"domain": "domain=example.com,destination=dest@example.com"}
+        res = client.post("/add/dummy", headers=headers, json=data)
+        assert res.status_code == 412
+        assert "options are required" in res.json["error"]
+
+    def test_add_invalid_target(self, client, headers):
+        data = {
+            "domain": "domain=example.com,destination=dest@example.com,target=invalid"
+        }
+        res = client.post("/add/dummy", headers=headers, json=data)
+        assert res.status_code == 412
+        assert "must be a valid domain" in res.json["error"]
+
     def test_add_invalid_template(self, client, headers):
-        data = {"domain": "domain=d,destination=d,template=<bad>"}
+        data = {"domain": "domain=d,destination=d,target=example.com,template=<bad>"}
         res = client.post("/add/dummy", headers=headers, json=data)
         assert res.status_code == 412
         assert "Template part 'bad' is not allowed" in res.json["error"]
+
+    @patch("app.requests.post")
+    @patch("app.get_current_datetime")
+    def test_add_multilevel_tld_target(self, mock_now, mock_post, client, headers):
+        mock_now.return_value = datetime(2026, 2, 1)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {}
+
+        data = {
+            "domain": "domain=example.com,destination=dest@example.com,target=blog.example.co.uk"
+        }
+        res = client.post("/add/dummy", headers=headers, json=data)
+
+        assert res.status_code == 200
+        assert res.json["data"]["email"] == "uk-example-0261@example.com"
+
+    @patch("app.requests.post")
+    @patch("app.get_current_datetime")
+    def test_add_truncates_host_to_8_chars(
+        self, mock_now, mock_post, client, headers
+    ):
+        mock_now.return_value = datetime(2026, 2, 1)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {}
+
+        data = {
+            "domain": "domain=example.com,destination=dest@example.com,target=verylonghostname.com"
+        }
+        res = client.post("/add/dummy", headers=headers, json=data)
+
+        assert res.status_code == 200
+        assert res.json["data"]["email"] == "com-verylong-0261@example.com"
+
+    @patch("app.requests.post")
+    @patch("app.get_current_datetime")
+    def test_add_applies_prefix_and_suffix(self, mock_now, mock_post, client, headers):
+        mock_now.return_value = datetime(2026, 2, 1)
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {}
+
+        data = {
+            "domain": "domain=example.com,destination=dest@example.com,target=example.com,prefix=foo,suffix=bar,alias_separator=-"
+        }
+        res = client.post("/add/dummy", headers=headers, json=data)
+
+        assert res.status_code == 200
+        assert res.json["data"]["email"] == "foo-com-example-0261-bar@example.com"
 
     @patch("app.requests.get")
     def test_list_success(self, mock_get, client, headers):

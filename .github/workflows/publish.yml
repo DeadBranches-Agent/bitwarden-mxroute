@@ -42,8 +42,8 @@ jobs:
         name: Build Docker image (linux/arm64/v8)
         uses: docker/build-push-action@v7
         with:
-          context: ./build
-          file: server/Dockerfile
+          context: .
+          file: Dockerfile
           platforms: linux/arm64/v8
           push: true
           tags: ${{ steps.meta.outputs.tags }}

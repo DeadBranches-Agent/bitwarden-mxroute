@@ -15,7 +15,7 @@ x-runtime:
 services:
   bitwarden-mxroute:
     container_name: bitwarden-mxroute
-    image: ghcr.io/deadbranches-agent/bitwarden-mxroute
+    image: ghcr.io/deadbranch-forks/bitwarden-mxroute
     build:
       context: /opt/bitwarden-mxroute/build
       dockerfile: Dockerfile

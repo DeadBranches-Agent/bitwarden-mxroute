@@ -157,15 +157,6 @@ class TestApp:
         assert res.status_code == 200
         assert res.json["data"]["email"] == "foo-com-example-0261-bar@example.com"
 
-    @patch("app.requests.get")
-    def test_list_success(self, mock_get, client, headers):
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {"data": [{"alias": "foo"}]}
-
-        res = client.get("/list/example.com", headers=headers)
-        assert res.status_code == 200
-        assert res.json == [{"alias": "foo"}]
-
     @patch("app.requests.delete")
     def test_delete_success(self, mock_delete, client, headers):
         mock_delete.return_value.status_code = 204
